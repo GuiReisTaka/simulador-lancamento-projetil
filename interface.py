@@ -2,12 +2,12 @@
 interface.py
 ------------
 Como rodar:
-    1. Instalar as bibliotecas (uma vez so):
+    1. Instalar as bibliotecas:
        pip install matplotlib numpy
     2. Rodar:
        python interface.py
 
-Este arquivo cuida da INTERFACE GRAFICA (sliders, botao, texto de
+Este arquivo cuida da interface grafica (sliders, botao, texto de
 resultados). Toda a fisica (calculos) fica em fisica.py - este
 arquivo so CHAMA as funcoes de la, nunca refaz contas de fisica aqui.
 
@@ -26,9 +26,6 @@ from matplotlib.widgets import Slider, Button
 from fisica import calcular_resultados, calcular_trajetoria
 
 
-# ---------------------------------------------------------------
-# CONFIGURACAO INICIAL DA JANELA
-# ---------------------------------------------------------------
 
 # Valores iniciais (o que aparece quando o programa abre)
 V0_INICIAL = 40
@@ -148,10 +145,40 @@ def atualizar(val=None):
     ponto_altura_max.set_offsets([[x[idx_max], resultados["y_max"]]])
     ponto_queda.set_offsets([[x[-1], y[-1]]])
 
-    # Reajusta os limites do grafico para a nova trajetoria caber bem
-    ax.set_xlim(min(0, x.min()) - 5, x.max() * 1.1 + 5)
-    ax.set_ylim(min(0, y.min()) - 5, max(y.max(), resultados["y_max"]) * 1.2 + 5)
-    ax.set_aspect("auto")  # 'equal' pode ficar estranho com ranges dinamicos
+    # --------- Limites dos eixos com escala x/y consistente ---------
+    # O enunciado exige que 1 metro no eixo x pareca do mesmo tamanho
+    # que 1 metro no eixo y (para a trajetoria nao ficar distorcida).
+    # Usar ax.set_aspect("equal") direto cortava pedacos da curva,
+    # porque a area do grafico nao e quadrada (os sliders ocupam
+    # espaco embaixo). Por isso calculamos os limites manualmente:
+    # comecamos com o "encaixe" natural dos dados, e so ENTAO
+    # expandimos (nunca cortamos) o eixo mais "apertado" ate a
+    # proporcao bater com o formato real da area do grafico.
+
+    xmin_dados, xmax_dados = min(0, x.min()), x.max()
+    ymin_dados, ymax_dados = min(0, y.min()), max(y.max(), resultados["y_max"])
+
+    largura_x = (xmax_dados - xmin_dados) * 1.1 + 10
+    altura_y = (ymax_dados - ymin_dados) * 1.2 + 10
+    centro_x = (xmax_dados + xmin_dados) / 2
+    centro_y = (ymax_dados + ymin_dados) / 2
+
+    # Proporcao real (largura/altura) da area onde o grafico e desenhado
+    caixa = ax.get_position()
+    fig_largura, fig_altura = fig.get_size_inches()
+    proporcao_caixa = (caixa.width * fig_largura) / (caixa.height * fig_altura)
+
+    proporcao_dados = largura_x / altura_y
+    if proporcao_dados < proporcao_caixa:
+        # eixo x esta "apertado" perto do y: expande o x
+        largura_x = altura_y * proporcao_caixa
+    else:
+        # eixo y esta "apertado" perto do x: expande o y
+        altura_y = largura_x / proporcao_caixa
+
+    ax.set_xlim(centro_x - largura_x / 2, centro_x + largura_x / 2)
+    ax.set_ylim(centro_y - altura_y / 2, centro_y + altura_y / 2)
+    ax.set_aspect("auto")  # os limites acima ja garantem a escala 1:1
 
     # Atualiza o texto com os resultados numericos
     texto_resultados.set_text(
