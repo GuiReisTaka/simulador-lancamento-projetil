@@ -2,6 +2,7 @@
 Simulador interativo, com interface gráfica em Python, do lançamento de projéteis sem resistência do ar (caso ideal). Desenvolvido como trabalho da disciplina de Física - Práticas Extensivas.
 
 O usuário ajusta os parâmetros do lançamento (velocidade inicial, ângulo, altura inicial e gravidade) através de sliders e vê a trajetória, os resultados numéricos e uma animação do lançamento atualizarem em tempo real.
+Link do Colab: https://colab.research.google.com/drive/1EcFOc-jsRcSdr-wehOERS3Qibo424Wy9?usp=sharing
 
 ## Funcionalidades:
 
